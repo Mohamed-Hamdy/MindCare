@@ -167,3 +167,7 @@ then, in the browser, either open the app with
 console and reload. Log in with the same [demo accounts](#demo-login-accounts)
 as above — full details, the API reference, and the current limitations of
 this first pass are in [backend/README.md](backend/README.md).
+
+## License
+
+[MIT](LICENSE) — free to use, fork, and build on for your own projects or learning.
