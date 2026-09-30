@@ -1,82 +1,84 @@
-# MindCare — منصة إدارة المراكز والعيادات الطبية
+# MindCare — Clinic & Medical Center Management Platform
 
-منصة ويب متكاملة لإدارة العيادات والمراكز الطبية، تعمل بالكامل من جانب العميل
-(Client-Side فقط) بدون أي حاجة لسيرفر خلفي — كل البيانات تُخزَّن محليًا في
-متصفح المستخدم عبر **IndexedDB**.
+A fully client-side web platform for managing clinics and medical centers —
+no backend server required. All data is stored locally in the user's browser
+via **IndexedDB**.
 
-## التقنيات المستخدمة
+## Tech Stack
 
-| الطبقة | التقنية |
+| Layer | Technology |
 |---|---|
-| Framework | Angular 21 (Standalone Components، أحدث إصدار متوافق مع بيئة التشغيل) |
-| إدارة الحالة | Angular Signals |
-| التخزين المحلي | IndexedDB عبر مكتبة `idb` (طبقة Repository عامة، انظر Clean Architecture أدناه) |
-| التصميم | Bootstrap 5.3 (RTL) + SCSS + خط Cairo + Dark/Light Mode عبر `data-bs-theme` |
-| التحقق عبر البريد (OTP) | `@emailjs/browser` |
-| واتساب | جلسة Fetch إلى WhatsApp Business API مع تحويل تلقائي لرابط `wa.me` عند الفشل |
-| تصدير PDF | `jsPDF` + `html2canvas` (لضمان عرض العربية RTL بشكل صحيح) + `qrcode` |
-| اللغة | TypeScript صارم بالكامل (`strict: true`, `strictTemplates: true`) |
+| Framework | Angular 21 (Standalone Components, latest version compatible with the runtime) |
+| State management | Angular Signals |
+| Local storage | IndexedDB via the `idb` library (generic Repository layer — see Clean Architecture below) |
+| UI | Bootstrap 5.3 (RTL/LTR) + SCSS + Cairo font + Dark/Light mode via `data-bs-theme` |
+| Email verification (OTP) | `@emailjs/browser` |
+| WhatsApp | Fetch call to the WhatsApp Business API, with automatic fallback to a `wa.me` link on failure |
+| PDF export | `jsPDF` + `html2canvas` (for correct Arabic RTL rendering) + `qrcode` |
+| Language | Fully strict TypeScript (`strict: true`, `strictTemplates: true`) |
+| i18n | Bilingual EN/AR with `@ngx-translate/core`, runtime-swapped Bootstrap RTL/LTR stylesheets |
 
-## البنية المعمارية (Clean Architecture)
+## Architecture (Clean Architecture)
 
 ```
 src/app/
   core/
-    models/        ← نماذج البيانات (Domain Layer) — لا تعتمد على أي شيء آخر
-    data/           ← طبقة البيانات: IndexedDB schema + Repository عام لكل كيان
-    services/       ← الخدمات المشتركة: Auth, OTP, WhatsApp, PDF, Theme, Notifications
-    guards/         ← حراسة المسارات حسب الدور (Role-based routing)
-    config/         ← إعدادات EmailJS / WhatsApp / بيانات العيادة
-  shared/           ← مكوّنات UI قابلة لإعادة الاستخدام
-  layout/           ← قوالب الصفحات (بوابة المرضى / لوحة الموظفين)
-  features/         ← كل وحدة من وحدات النظام في مجلد مستقل
-    patient-portal/ ← بوابة حجز المرضى
-    reception/      ← الاستقبال وقائمة الانتظار الحية
-    doctor/         ← ملف المريض والروشتة الإلكترونية
-    pharmacy/       ← الصيدلية والمخزون
-    lab/             ← تتبع التحاليل
-    billing/        ← الفواتير
-    admin/          ← لوحة الإدارة الديناميكية (CRUD كامل)
+    models/        ← Data models (Domain Layer) — no dependencies on anything else
+    data/           ← Data layer: IndexedDB schema + generic Repository per entity
+    services/       ← Shared services: Auth, OTP, WhatsApp, PDF, Theme, Notifications
+    guards/         ← Role-based route guards
+    config/         ← EmailJS / WhatsApp / clinic settings
+  shared/           ← Reusable UI components
+  layout/           ← Page shells (patient portal / staff dashboard)
+  features/         ← Each system module in its own folder
+    patient-portal/ ← Patient booking portal
+    reception/      ← Front desk and live waiting queue
+    doctor/         ← Patient record and e-prescription
+    pharmacy/       ← Pharmacy and inventory
+    lab/             ← Lab test tracking
+    billing/        ← Invoicing
+    admin/          ← Fully dynamic admin panel (full CRUD)
 ```
 
-كل شاشة تقرأ حالتها من `repository.items()` (وهو Signal)، لذلك أي تعديل من
-لوحة الإدارة (إضافة/تعديل/حذف طبيب، دواء، تخصص...) ينعكس فورًا في كل الشاشات
-دون أي عنصر ثابت (hardcoded) في الكود.
+Every screen reads its state from `repository.items()` (an Angular Signal), so
+any change made from the admin panel (add/edit/delete a doctor, medication,
+specialty...) is reflected instantly across every screen with no hardcoded
+data in the codebase.
 
-## تشغيل المشروع محليًا
+## Running Locally
 
 ```bash
 npm install
-npm start        # يفتح على http://localhost:4200
+npm start        # opens on http://localhost:4200
 ```
 
-عند أول تشغيل، يقوم التطبيق تلقائيًا بزرع (Seed) بيانات تجريبية: 6 تخصصات،
-6 أطباء، 10 أدوية، 6 تحاليل معملية، ومريضين تجريبيين — بالإضافة إلى حسابات
-دخول للموظفين.
+On first run, the app automatically seeds demo data: 6 specialties, 6
+doctors, 10 medications, 6 lab tests, and 2 sample patients — plus staff
+login accounts.
 
-### حسابات الدخول التجريبية
+### Demo Login Accounts
 
-| الدور | اسم المستخدم | كلمة المرور |
+| Role | Username | Password |
 |---|---|---|
-| مدير النظام | `admin` | `admin123` |
-| الاستقبال | `reception` | `reception123` |
-| طبيب (أي من الـ6) | `doctor1` ... `doctor6` | `doctor123` |
-| الصيدلية | `pharmacy` | `pharmacy123` |
-| المعمل | `lab` | `lab123` |
+| System admin | `admin` | `admin123` |
+| Reception | `reception` | `reception123` |
+| Doctor (any of the 6) | `doctor1` ... `doctor6` | `doctor123` |
+| Pharmacy | `pharmacy` | `pharmacy123` |
+| Lab | `lab` | `lab123` |
 
-## تفعيل التكاملات الحقيقية (اختياري)
+## Enabling Real Integrations (Optional)
 
-المشروع يعمل بالكامل في "وضع تجريبي" بدون أي إعداد إضافي:
-- رمز التحقق OTP يظهر مباشرة في إشعار على الشاشة بدلًا من البريد الإلكتروني.
-- إشعارات واتساب تُفتح تلقائيًا كرابط `wa.me` جاهز للإرسال اليدوي.
+The project runs fully in "demo mode" with no extra setup:
+- The OTP verification code is shown directly in an on-screen notification instead of being emailed.
+- WhatsApp notifications automatically open as a ready-to-send `wa.me` link.
 
-لتفعيل الإرسال الحقيقي، عدّل الملف `src/app/core/config/app-config.ts`:
+To enable real sending, edit `src/app/core/config/app-config.ts`:
 
 ```ts
 emailjs: {
   serviceId: 'YOUR_EMAILJS_SERVICE_ID',
   templateId: 'YOUR_OTP_TEMPLATE_ID',
-  notifyTemplateId: 'YOUR_NOTIFY_TEMPLATE_ID', // اختياري
+  notifyTemplateId: 'YOUR_NOTIFY_TEMPLATE_ID', // optional
   publicKey: 'YOUR_EMAILJS_PUBLIC_KEY',
 },
 whatsapp: {
@@ -85,41 +87,46 @@ whatsapp: {
 },
 ```
 
-قالب EmailJS الخاص بالـ OTP يحتاج المتغيرات: `{{to_email}}`, `{{otp_code}}`,
-`{{ttl_minutes}}`, `{{clinic_name}}`.
+The EmailJS OTP template needs these variables: `{{to_email}}`,
+`{{otp_code}}`, `{{ttl_minutes}}`, `{{clinic_name}}`.
 
-## البناء للإنتاج
+## Building for Production
 
 ```bash
 npm run build
 ```
 
-الناتج في `dist/MindCare/browser` — مجلد ثابت بالكامل (Static) جاهز
-للرفع على أي استضافة ثابتة: Netlify، Vercel، GitHub Pages، Firebase Hosting،
-إلخ. لا حاجة لأي إعداد سيرفر أو قاعدة بيانات.
+The output lands in `dist/MindCare/browser` — a fully static folder ready to
+deploy to any static host: Netlify, Vercel, GitHub Pages, Firebase Hosting,
+etc. No server or database setup required.
 
-### النشر السريع
+### Quick Deploy
 
-- **Netlify**: اسحب مجلد `dist/MindCare/browser` إلى [app.netlify.com/drop](https://app.netlify.com/drop)
-- **Vercel**: `vercel --prod dist/MindCare/browser` (بعد `npm i -g vercel`)
-- **GitHub Pages**: ارفع محتوى `dist/MindCare/browser` إلى فرع `gh-pages`
+- **Netlify**: drag the `dist/MindCare/browser` folder onto [app.netlify.com/drop](https://app.netlify.com/drop)
+- **Vercel**: `vercel --prod dist/MindCare/browser` (after `npm i -g vercel`)
+- **GitHub Pages**: push the `dist/MindCare/browser` contents to a `gh-pages` branch, or use the GitHub Actions workflow included in this repo
 
-> ملاحظة: بما أن التوجيه (Routing) من نوع Browser History، تأكد أن الاستضافة
-> تُعيد توجيه كل المسارات غير الموجودة إلى `index.html` (SPA fallback) —
-> هذا مُفعّل تلقائيًا في Netlify وVercel، وعلى GitHub Pages يمكن نسخ
-> `index.html` إلى `404.html`.
+> Note: since routing uses Browser History mode, make sure your host
+> redirects all unmatched routes to `index.html` (SPA fallback) — this is
+> enabled automatically on Netlify and Vercel; on GitHub Pages, copy
+> `index.html` to `404.html`.
 
-## الوحدات المنفذة
+## Live Demo
 
-- ✅ بوابة حجز المرضى: اختيار تخصص/طبيب بالتقييم والسعر، Smart Slot Picker يمنع التعارض تلقائيًا حسب شفتات الطبيب، استمارة تاريخ مرضي مع رفع صور Base64، تأكيد OTP سداسي عبر EmailJS بعدّاد 5 دقائق وحد أقصى للمحاولات.
-- ✅ الاستقبال: قائمة انتظار حية (قيد الانتظار / في الكشف / مكتمل / طارئة)، تسجيل حضور، إشعار واتساب تلقائي مع Fallback لرابط wa.me، إضافة حالة طارئة تتخطى الطابور.
-- ✅ لوحة الطبيب: EMR كامل (تاريخ مرضي، علامات حيوية)، روشتة إلكترونية بمحرر أدوية/جرعات، تصدير PDF بترويسة العيادة وQR Code، طلب تحاليل معملية مباشرة من ملف المريض.
-- ✅ الصيدلية والمعمل: خصم تلقائي من المخزون عند الصرف، تنبيه عند الوصول للحد الأدنى، تتبع حالة التحاليل مع إشعار بريدي عند الجاهزية.
-- ✅ الفواتير: تجميع تلقائي لتكلفة الكشف + الأدوية المصروفة + التحاليل، خصم وضريبة قابلين للتعديل، طرق دفع متعددة، تصدير PDF.
-- ✅ لوحة الإدارة: CRUD كامل للأطباء، التخصصات، الأدوية والمخزون، الخدمات والتحاليل، ومواعيد/شفتات كل طبيب — بدون أي عنصر ثابت بالكود، وكل تعديل ينعكس فورًا في كل الشاشات.
+🔗 **https://mohamed-hamdy.github.io/MindCare/**
 
-## القيود المعروفة (Client-Side Only)
+## Implemented Modules
 
-- لا يوجد Backend حقيقي، لذلك بيانات كل متصفح منفصلة عن الآخر (لا توجد مزامنة بين الأجهزة).
-- كلمات المرور تُخزَّن كنص عادي في IndexedDB — مقبول لتطبيق تجريبي بالكامل من جانب العميل، غير مناسب لبيئة إنتاج حقيقية بدون تعديل.
-- إرسال البريد وواتساب الحقيقيين يعتمدان على مفاتيح publishable تُستدعى من المتصفح مباشرة (لا يوجد سيرفر يُخفيها) — هذا هو النمط المتاح الوحيد في تطبيق Client-Side بالكامل.
+- ✅ **Patient booking portal**: choose a specialty/doctor by rating and price, a smart slot picker that automatically prevents conflicts based on doctor shifts, a medical history form with Base64 image uploads, and 6-digit OTP confirmation via EmailJS with a 5-minute countdown and a max-attempts limit.
+- ✅ **Reception**: a live waiting queue (waiting / in exam / completed / emergency), check-in, automatic WhatsApp notification with `wa.me` fallback, and the ability to add an emergency case that jumps the queue.
+- ✅ **Doctor dashboard**: a full EMR (medical history, vital signs), an e-prescription editor for medications/dosages, PDF export with clinic letterhead and a QR code, and lab test requests directly from the patient record.
+- ✅ **Pharmacy & lab**: automatic stock deduction on dispensing, low-stock alerts, and lab test status tracking with email notification when results are ready.
+- ✅ **Billing**: automatic aggregation of exam fees + dispensed medications + lab tests, adjustable discounts and tax, multiple payment methods, and PDF export.
+- ✅ **Admin panel**: full CRUD for doctors, specialties, medications & inventory, services & lab tests, and per-doctor schedules/shifts — nothing hardcoded in the code, every change reflects instantly across all screens.
+- ✅ **Bilingual EN/AR**: full interface switch between English (LTR) and Arabic (RTL), including runtime-swapped Bootstrap stylesheets so every component (not just utility classes) renders correctly in both directions.
+
+## Known Limitations (Client-Side Only)
+
+- There is no real backend, so each browser's data is separate (no sync across devices).
+- Passwords are stored as plain text in IndexedDB — acceptable for a fully client-side demo app, not suitable for a real production environment without changes.
+- Real email and WhatsApp sending rely on publishable keys called directly from the browser (there is no server to hide them) — this is the only pattern available in a fully client-side app.
