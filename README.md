@@ -1,4 +1,5 @@
 # MindCare — Clinic & Medical Center Management Platform
+<img width="1920" height="1080" alt="mindcare-cover-1" src="https://github.com/user-attachments/assets/39044c83-abed-4fb4-835b-1865d8521753" />
 
 A clinic and medical-center management platform, built two ways in one repo:
 
