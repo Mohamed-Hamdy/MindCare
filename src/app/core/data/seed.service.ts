@@ -7,6 +7,7 @@ import { LabTestTypeRepository } from './lab-test-type.repository';
 import { UserRepository } from './user.repository';
 import { PatientRepository } from './patient.repository';
 import { Doctor, Medicine, LabTestType, AppUser, Specialty, Patient, WeeklyShift } from '../models';
+import { BackendConfigService } from '../services/backend-config.service';
 
 const now = () => new Date().toISOString();
 
@@ -27,25 +28,35 @@ export class SeedService {
   private labTestRepo = inject(LabTestTypeRepository);
   private userRepo = inject(UserRepository);
   private patientRepo = inject(PatientRepository);
+  private backendConfig = inject(BackendConfigService);
 
   private readonly SEED_FLAG = 'cp_seeded_v1';
 
   async seedIfNeeded(): Promise<void> {
     if (localStorage.getItem(this.SEED_FLAG) === 'true') return;
 
-    const specialties = this.buildSpecialties();
-    await this.specialtyRepo.bulkSeed(specialties);
+    // Backend mode: Specialties/Doctors/Patients/Users already have an
+    // authoritative dataset from the backend (Flyway's V2__seed_data.sql —
+    // same demo doctors/accounts, just served over HTTP instead of read from
+    // IndexedDB). Seeding those locally too would just be stale, confusing
+    // shadow data. Medicine/LabTestType stay IndexedDB-only regardless of
+    // backend mode (Pharmacy/Lab modules are still a later milestone), so
+    // they're always seeded so those screens aren't empty either way.
+    if (!this.backendConfig.isEnabled()) {
+      const specialties = this.buildSpecialties();
+      await this.specialtyRepo.bulkSeed(specialties);
 
-    const doctors = this.buildDoctors(specialties);
-    await this.doctorRepo.bulkSeed(doctors);
+      const doctors = this.buildDoctors(specialties);
+      await this.doctorRepo.bulkSeed(doctors);
+
+      const patients = this.buildPatients();
+      await this.patientRepo.bulkSeed(patients);
+
+      await this.userRepo.bulkSeed(this.buildUsers(doctors));
+    }
 
     await this.medicineRepo.bulkSeed(this.buildMedicines());
     await this.labTestRepo.bulkSeed(this.buildLabTests());
-
-    const patients = this.buildPatients();
-    await this.patientRepo.bulkSeed(patients);
-
-    await this.userRepo.bulkSeed(this.buildUsers(doctors));
 
     localStorage.setItem(this.SEED_FLAG, 'true');
   }

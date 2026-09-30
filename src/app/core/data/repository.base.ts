@@ -14,7 +14,14 @@ export abstract class RepositoryBase<
   T extends AuditFields & { id: Id } = MindCareDbSchema[StoreName]['value'],
 > {
   protected readonly storeName: StoreName;
-  private readonly _items: WritableSignal<T[]> = signal<T[]>([]);
+  /**
+   * Protected (not private) so a subclass that overrides `reload()` to source
+   * data from the backend instead of IndexedDB (see e.g. SpecialtyRepository)
+   * can still populate the same public `items` signal every screen reads.
+   * Purely a visibility change — behavior for every repository that does NOT
+   * override anything is completely unchanged.
+   */
+  protected readonly _items: WritableSignal<T[]> = signal<T[]>([]);
   private loaded = false;
   private loadPromise: Promise<void> | null = null;
 

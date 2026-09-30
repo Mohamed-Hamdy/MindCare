@@ -1,8 +1,19 @@
 # MindCare — Clinic & Medical Center Management Platform
 
-A fully client-side web platform for managing clinics and medical centers —
-no backend server required. All data is stored locally in the user's browser
-via **IndexedDB**.
+A clinic and medical-center management platform, built two ways in one repo:
+
+- **Client-side only (default, what's live on GitHub Pages)** — no backend
+  server required, all data stored locally in the browser via **IndexedDB**.
+  Instantly usable, free to host, zero setup.
+- **Full-stack** — a real [Spring Boot + PostgreSQL API](backend/README.md)
+  that the exact same Angular frontend can talk to instead of IndexedDB
+  (Auth, Specialties, Doctors, Patients, and Appointments so far), switched on
+  with a single runtime flag — no rebuild, no separate deployment of the
+  frontend. See [backend/README.md](backend/README.md) for how to run it and
+  turn it on.
+
+This README covers the client-side build below; jump to
+[backend/README.md](backend/README.md) for the full-stack version.
 
 ## Tech Stack
 
@@ -127,6 +138,32 @@ etc. No server or database setup required.
 
 ## Known Limitations (Client-Side Only)
 
-- There is no real backend, so each browser's data is separate (no sync across devices).
+- There is no real backend in this mode, so each browser's data is separate (no sync across devices) — see the [full-stack version](backend/README.md) if you need a shared/real backend.
 - Passwords are stored as plain text in IndexedDB — acceptable for a fully client-side demo app, not suitable for a real production environment without changes.
 - Real email and WhatsApp sending rely on publishable keys called directly from the browser (there is no server to hide them) — this is the only pattern available in a fully client-side app.
+
+## Full-Stack Version (Spring Boot + PostgreSQL)
+
+The repo also ships a real backend under [`backend/`](backend/README.md) —
+Spring Boot 3, Spring Security (JWT), Spring Data JPA, PostgreSQL, Flyway —
+and the Angular frontend above is actually wired up to it, not just sitting
+next to it: Auth, Specialties, Doctors (with shifts), Patients, and
+Appointments all go through the API instead of IndexedDB once you turn
+backend mode on. Pharmacy/Lab/Billing and staff-account management are still
+IndexedDB-only for now (see [backend/README.md](backend/README.md#scope-mvp)
+for the exact scope).
+
+Nothing here changes by default — the GitHub Pages demo keeps running
+client-side-only. To try the full-stack version:
+
+```bash
+docker compose up --build      # starts PostgreSQL + the API on :8080
+npm start                      # starts the Angular dev server on :4200
+```
+
+then, in the browser, either open the app with
+`http://localhost:4200/?apiUrl=http://localhost:8080` once, or run
+`localStorage.setItem('cp_api_base_url', 'http://localhost:8080')` in the
+console and reload. Log in with the same [demo accounts](#demo-login-accounts)
+as above — full details, the API reference, and the current limitations of
+this first pass are in [backend/README.md](backend/README.md).

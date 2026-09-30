@@ -1,0 +1,47 @@
+
+# Full-stack local run: PostgreSQL + the Spring Boot backend.
+#
+#   docker compose up --build
+#
+# Then run the Angular frontend the normal way (npm start) and point it at
+# http://localhost:8080 — see backend/README.md for wiring notes and the
+# demo accounts. The GitHub Pages deployment of this repo keeps using its
+# original client-side-only (IndexedDB) build; this compose file is for
+# anyone who clones the repo and wants to run the real backend locally.
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mindcare
+      POSTGRES_USER: mindcare
+      POSTGRES_PASSWORD: mindcare
+    ports:
+      - "5432:5432"
+    volumes:
+      - mindcare_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mindcare -d mindcare"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/mindcare
+      DB_USERNAME: mindcare
+      DB_PASSWORD: mindcare
+      # Change this to a long random value before deploying anywhere real.
+      JWT_SECRET: local-dev-only-jwt-secret-please-change-me-32bytes-min
+      CORS_ALLOWED_ORIGINS: http://localhost:4200
+    ports:
+      - "8080:8080"
+
+volumes:
+  mindcare_db_data:
