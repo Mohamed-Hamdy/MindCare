@@ -1,0 +1,52 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # Project Pages (username.github.io/REPO_NAME) need base-href to match
+      # the repo name so Angular's router and asset URLs resolve correctly.
+      - run: npx ng build --configuration production --base-href "/${{ github.event.repository.name }}/"
+
+      # GitHub Pages has no server-side rewrite rules. Angular is a client-side
+      # router, so a direct link/refresh on e.g. /admin needs the server to
+      # still return index.html — copying it to 404.html is the standard
+      # workaround GitHub Pages supports for SPAs.
+      - run: cp dist/MindCare/browser/index.html dist/MindCare/browser/404.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/MindCare/browser
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

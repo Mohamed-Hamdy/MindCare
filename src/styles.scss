@@ -1,0 +1,218 @@
+/* ==========================================================================
+   MindCare — Global Theme
+   Design tokens layered on top of Bootstrap 5.3's native CSS variables.
+   RTL/LTR layout comes from a runtime-swapped Bootstrap stylesheet, swapped by LanguageService — see index.html + language.service.ts.
+   ========================================================================== */
+
+:root,
+[data-bs-theme='light'] {
+  /* Brand palette — clinical teal/blue, calm & trustworthy */
+  --cp-primary: #0f7d8c;
+  --cp-primary-rgb: 15, 125, 140;
+  --cp-primary-dark: #0a5a66;
+  --cp-primary-light: #e5f4f6;
+  --cp-accent: #2a9d8f;
+  --cp-success: #2e9e5b;
+  --cp-warning: #e6a417;
+  --cp-danger: #d64545;
+  --cp-emergency: #b3212e;
+  --cp-info: #3b82c4;
+
+  --cp-surface: #ffffff;
+  --cp-surface-alt: #f5f8f9;
+  --cp-border: #e3e9ea;
+  --cp-text-muted: #6b7a7d;
+
+  --bs-primary: var(--cp-primary);
+  --bs-primary-rgb: var(--cp-primary-rgb);
+  --bs-body-font-family: 'Cairo', 'Segoe UI', sans-serif;
+  --bs-body-bg: #f4f7f8;
+  --bs-body-color: #1e2b2e;
+  --bs-border-color: var(--cp-border);
+  --bs-link-color: var(--cp-primary);
+  --bs-link-hover-color: var(--cp-primary-dark);
+
+  --cp-shadow: 0 2px 10px rgba(15, 40, 45, 0.06);
+  --cp-shadow-lg: 0 8px 28px rgba(15, 40, 45, 0.12);
+
+  color-scheme: light;
+}
+
+[data-bs-theme='dark'] {
+  --cp-primary: #35b7c4;
+  --cp-primary-rgb: 53, 183, 196;
+  --cp-primary-dark: #1e8b96;
+  --cp-primary-light: #113338;
+  --cp-accent: #4fc3b3;
+  --cp-success: #46c179;
+  --cp-warning: #f0b93e;
+  --cp-danger: #ec6a6a;
+  --cp-emergency: #ff5a6a;
+  --cp-info: #63a9e6;
+
+  --cp-surface: #16232a;
+  --cp-surface-alt: #1c2b33;
+  --cp-border: #2a3c44;
+  --cp-text-muted: #93a8ac;
+
+  --bs-primary: var(--cp-primary);
+  --bs-primary-rgb: var(--cp-primary-rgb);
+  --bs-body-bg: #0e171c;
+  --bs-body-color: #e7f0f1;
+  --bs-border-color: var(--cp-border);
+  --bs-tertiary-bg: var(--cp-surface-alt);
+  --bs-secondary-bg: var(--cp-surface-alt);
+  --bs-link-color: var(--cp-primary);
+  --bs-link-hover-color: var(--cp-primary-dark);
+
+  --cp-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  --cp-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+
+  color-scheme: dark;
+}
+
+* {
+  font-family: var(--bs-body-font-family);
+}
+
+html,
+body {
+  height: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  transition: background-color .2s ease, color .2s ease;
+}
+
+app-root {
+  display: block;
+  min-height: 100vh;
+}
+
+/* ---------- Cards & Surfaces ---------- */
+.cp-card {
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 1rem;
+  box-shadow: var(--cp-shadow);
+  transition: box-shadow .2s ease, transform .15s ease;
+}
+
+.cp-card--hover:hover {
+  box-shadow: var(--cp-shadow-lg);
+  transform: translateY(-2px);
+}
+
+.cp-surface-alt {
+  background: var(--cp-surface-alt);
+}
+
+/* ---------- Buttons ---------- */
+.btn-primary {
+  --bs-btn-bg: var(--cp-primary);
+  --bs-btn-border-color: var(--cp-primary);
+  --bs-btn-hover-bg: var(--cp-primary-dark);
+  --bs-btn-hover-border-color: var(--cp-primary-dark);
+  --bs-btn-active-bg: var(--cp-primary-dark);
+  --bs-btn-active-border-color: var(--cp-primary-dark);
+}
+
+.btn-emergency {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--cp-emergency);
+  --bs-btn-border-color: var(--cp-emergency);
+  --bs-btn-hover-bg: #8f1a24;
+  --bs-btn-hover-border-color: #8f1a24;
+}
+
+/* ---------- Queue status badges ---------- */
+.cp-status {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .3rem .75rem;
+  border-radius: 50rem;
+  font-size: .8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cp-status--waiting { background: rgba(230, 164, 23, .15); color: var(--cp-warning); }
+.cp-status--in-exam { background: rgba(var(--cp-primary-rgb), .15); color: var(--cp-primary); }
+.cp-status--completed { background: rgba(46, 158, 91, .15); color: var(--cp-success); }
+.cp-status--emergency { background: rgba(179, 33, 46, .15); color: var(--cp-emergency); animation: cp-pulse 1.4s infinite; }
+.cp-status--cancelled { background: rgba(107, 122, 125, .15); color: var(--cp-text-muted); }
+
+@keyframes cp-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .55; }
+}
+
+/* ---------- Rating stars ---------- */
+.cp-rating { color: var(--cp-warning); letter-spacing: 1px; }
+
+/* ---------- Sidebar / Shell ---------- */
+.cp-shell {
+  min-height: 100vh;
+  display: flex;
+}
+
+.cp-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--cp-surface);
+  border-inline-end: 1px solid var(--cp-border);
+  min-height: 100vh;
+}
+
+.cp-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.cp-nav-link {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .6rem .9rem;
+  border-radius: .6rem;
+  color: var(--bs-body-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: background .15s ease, color .15s ease;
+}
+
+.cp-nav-link:hover { background: var(--cp-surface-alt); color: var(--cp-primary); }
+.cp-nav-link.active { background: rgba(var(--cp-primary-rgb), .12); color: var(--cp-primary); }
+
+/* ---------- Scrollbar ---------- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--cp-border); border-radius: 4px; }
+
+/* ---------- Utility ---------- */
+.cp-text-muted { color: var(--cp-text-muted) !important; }
+.cp-fw-800 { font-weight: 800; }
+.cp-cursor-pointer { cursor: pointer; }
+.cp-rounded-xl { border-radius: 1.1rem !important; }
+
+/* ---------- Print (prescription / invoice previews) ---------- */
+@media print {
+  .cp-no-print { display: none !important; }
+  body { background: #fff !important; }
+}
+
+/* ---------- Responsive sidebar ---------- */
+@media (max-width: 991.98px) {
+  .cp-sidebar {
+    position: fixed;
+    inset-inline-start: 0;
+    top: 0;
+    z-index: 1045;
+    transform: translateX(100%);
+    transition: transform .25s ease;
+  }
+  [dir='rtl'] .cp-sidebar.show { transform: translateX(0); }
+  .cp-sidebar.show { transform: translateX(0); }
+}

@@ -1,0 +1,267 @@
+@if (appointment(); as appt) {
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h5 class="cp-fw-800 mb-0"><i class="bi bi-file-medical me-2 ms-2"></i>{{ 'record.title' | translate }}</h5>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-success btn-sm" (click)="finishExam()">
+        <i class="bi bi-check2-circle me-1 ms-1"></i> {{ 'record.finishExam' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <div class="cp-card p-3 mb-3 d-flex flex-wrap gap-4">
+    <div>
+      <div class="small cp-text-muted">{{ 'record.patient' | translate }}</div>
+      <div class="fw-bold">{{ patient()?.fullName }}</div>
+    </div>
+    <div>
+      <div class="small cp-text-muted">{{ 'record.phone' | translate }}</div>
+      <div class="fw-bold">{{ patient()?.phone }}</div>
+    </div>
+    <div>
+      <div class="small cp-text-muted">{{ 'record.gender' | translate }}</div>
+      <div class="fw-bold">{{ (patient()?.gender === 'male' ? 'common.male' : 'common.female') | translate }}</div>
+    </div>
+    <div>
+      <div class="small cp-text-muted">{{ 'record.reasonForVisit' | translate }}</div>
+      <div class="fw-bold">{{ appt.reasonForVisit || '—' }}</div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <!-- Left column: history & vitals -->
+    <div class="col-lg-5">
+      <div class="cp-card p-3 mb-3">
+        <h6 class="fw-bold mb-2"><i class="bi bi-journal-medical me-2 ms-2"></i>{{ 'record.medicalHistory' | translate }}</h6>
+        <div class="small mb-1"><span class="cp-text-muted">{{ 'record.chronicDiseases' | translate }}:</span> {{ patient()?.medicalHistory?.chronicDiseases || '—' }}</div>
+        <div class="small mb-1"><span class="cp-text-muted">{{ 'record.allergies' | translate }}:</span> {{ patient()?.medicalHistory?.allergies || '—' }}</div>
+        <div class="small mb-1"><span class="cp-text-muted">{{ 'record.currentMedications' | translate }}:</span> {{ patient()?.medicalHistory?.currentMedications || '—' }}</div>
+        <div class="small mb-2"><span class="cp-text-muted">{{ 'record.previousSurgeries' | translate }}:</span> {{ patient()?.medicalHistory?.previousSurgeries || '—' }}</div>
+        @if (patient()?.medicalHistory?.attachments?.length) {
+          <div class="d-flex flex-wrap gap-2">
+            @for (att of patient()!.medicalHistory.attachments; track att.id) {
+              <img [src]="att.base64" class="rounded-3 border" style="width: 60px; height: 60px; object-fit: cover;" />
+            }
+          </div>
+        }
+      </div>
+
+      <div class="cp-card p-3 mb-3">
+        <h6 class="fw-bold mb-2"><i class="bi bi-heart-pulse me-2 ms-2"></i>{{ 'record.vitals' | translate }}</h6>
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <input class="form-control form-control-sm" [placeholder]="'record.bloodPressure' | translate" [(ngModel)]="vBloodPressure" />
+          </div>
+          <div class="col-6">
+            <input class="form-control form-control-sm" type="number" [placeholder]="'record.bloodSugar' | translate" [(ngModel)]="vBloodSugar" />
+          </div>
+          <div class="col-6">
+            <input class="form-control form-control-sm" type="number" [placeholder]="'record.pulse' | translate" [(ngModel)]="vPulse" />
+          </div>
+          <div class="col-6">
+            <input class="form-control form-control-sm" type="number" [placeholder]="'record.temperature' | translate" [(ngModel)]="vTemperature" />
+          </div>
+          <div class="col-6">
+            <input class="form-control form-control-sm" type="number" [placeholder]="'record.weight' | translate" [(ngModel)]="vWeight" />
+          </div>
+          <div class="col-6">
+            <input class="form-control form-control-sm" type="number" [placeholder]="'record.height' | translate" [(ngModel)]="vHeight" />
+          </div>
+        </div>
+        <button class="btn btn-sm btn-outline-primary w-100" (click)="addVitals()">
+          <i class="bi bi-plus-lg me-1 ms-1"></i> {{ 'record.saveVitals' | translate }}
+        </button>
+
+        @if (patient()?.vitals?.length) {
+          <div class="table-responsive mt-3" style="max-height: 180px;">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>{{ 'record.vitalsDate' | translate }}</th>
+                  <th>{{ 'record.bloodPressure' | translate }}</th>
+                  <th>{{ 'record.bloodSugar' | translate }}</th>
+                  <th>{{ 'record.pulse' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (v of patient()!.vitals.slice().reverse(); track v.recordedAt) {
+                  <tr>
+                    <td class="small">{{ v.recordedAt | date: 'short' }}</td>
+                    <td class="small">{{ v.bloodPressure || '—' }}</td>
+                    <td class="small">{{ v.bloodSugar || '—' }}</td>
+                    <td class="small">{{ v.pulse || '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      <div class="cp-card p-3">
+        <h6 class="fw-bold mb-2"><i class="bi bi-clipboard2-pulse me-2 ms-2"></i>{{ 'record.labOrder' | translate }}</h6>
+        <div class="d-flex gap-2 mb-2">
+          <select class="form-select form-select-sm" [(ngModel)]="selectedLabTestId">
+            @for (t of labTestTypes(); track t.id) {
+              <option [value]="t.id">{{ t.name }} — {{ t.price }} {{ 'common.egp' | translate }}</option>
+            }
+          </select>
+          <button class="btn btn-sm btn-outline-primary text-nowrap" (click)="orderLabTest()">{{ 'record.order' | translate }}</button>
+        </div>
+        @if (labOrders().length) {
+          <div class="d-flex flex-column gap-1">
+            @for (o of labOrders(); track o.id) {
+              <div class="d-flex justify-content-between small border-bottom pb-1">
+                <span>{{ o.testName }}</span>
+                <span class="cp-text-muted">{{ labStatusKey(o.status) | translate }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Right column: prescription editor -->
+    <div class="col-lg-7">
+      <div class="cp-card p-3">
+        <h6 class="fw-bold mb-2"><i class="bi bi-prescription2 me-2 ms-2"></i>{{ 'record.prescription' | translate }}</h6>
+        <div class="mb-2">
+          <label class="form-label small">{{ 'record.diagnosis' | translate }}</label>
+          <input class="form-control" [(ngModel)]="diagnosis" />
+        </div>
+
+        <div class="row g-2 align-items-end mb-2">
+          <div class="col-md-4">
+            <label class="form-label small">{{ 'record.medicine' | translate }}</label>
+            <select class="form-select" [(ngModel)]="selectedMedicineId">
+              @for (m of medicines(); track m.id) {
+                <option [value]="m.id">{{ m.name }} {{ m.strength }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">{{ 'record.dosage' | translate }}</label>
+            <input class="form-control" [placeholder]="'record.dosagePlaceholder' | translate" [(ngModel)]="dosage" />
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small">{{ 'record.duration' | translate }}</label>
+            <input class="form-control" type="number" [(ngModel)]="durationDays" />
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small">{{ 'record.quantity' | translate }}</label>
+            <input class="form-control" type="number" [(ngModel)]="quantity" />
+          </div>
+          <div class="col-md-1">
+            <button class="btn btn-primary w-100" (click)="addMedicineRow()"><i class="bi bi-plus-lg"></i></button>
+          </div>
+        </div>
+
+        <div class="table-responsive mb-3">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>{{ 'record.medicine' | translate }}</th>
+                <th>{{ 'record.dosage' | translate }}</th>
+                <th>{{ 'record.duration' | translate }}</th>
+                <th>{{ 'record.quantity' | translate }}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of items(); track item.medicineId; let i = $index) {
+                <tr>
+                  <td class="small">{{ item.medicineName }}</td>
+                  <td class="small">{{ item.dosage }}</td>
+                  <td class="small">{{ item.durationDays }} {{ 'common.days' | translate }}</td>
+                  <td class="small">{{ item.quantity }}</td>
+                  <td><button class="btn btn-sm btn-outline-danger" (click)="removeItem(i)"><i class="bi bi-trash"></i></button></td>
+                </tr>
+              }
+              @if (items().length === 0) {
+                <tr><td colspan="5" class="text-center cp-text-muted small py-3">{{ 'record.noItems' | translate }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small">{{ 'record.generalNotes' | translate }}</label>
+          <textarea class="form-control" rows="2" [(ngModel)]="generalNotes"></textarea>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-primary flex-fill" [disabled]="savingPrescription()" (click)="savePrescription()">
+            <i class="bi bi-save me-1 ms-1"></i> {{ 'record.savePrescription' | translate }}
+          </button>
+          <button class="btn btn-primary flex-fill" [disabled]="exportingPdf()" (click)="exportPrescriptionPdf()">
+            @if (exportingPdf()) {
+              <span class="spinner-border spinner-border-sm me-2 ms-2"></span>
+            }
+            <i class="bi bi-file-earmark-pdf me-1 ms-1"></i> {{ 'record.exportPdf' | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden printable prescription (captured via html2canvas) — kept in Arabic, the clinic's official document language -->
+  <div style="position: fixed; top: 0; left: -10000px; width: 780px;">
+    <div #printable style="background: #fff; color: #16232a; padding: 32px; font-family: 'Cairo', sans-serif; direction: rtl;">
+      <div style="display:flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #0f7d8c; padding-bottom: 16px; margin-bottom: 20px;">
+        <div>
+          <div style="font-size: 20px; font-weight: 800; color:#0f7d8c;">{{ clinicName }}</div>
+          <div style="font-size: 12px; color:#6b7a7d;">{{ clinicAddress }} · {{ clinicPhone }}</div>
+        </div>
+        <div style="text-align:left;">
+          <img [src]="qrDataUrl()" style="width: 80px; height: 80px;" />
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content: space-between; margin-bottom: 16px; font-size: 13px;">
+        <div>
+          <div><strong>المريض:</strong> {{ patient()?.fullName }}</div>
+          <div><strong>النوع:</strong> {{ patient()?.gender === 'male' ? 'ذكر' : 'أنثى' }}</div>
+        </div>
+        <div>
+          <div><strong>الطبيب:</strong> {{ doctor()?.fullName }}</div>
+          <div><strong>التاريخ:</strong> {{ today() }}</div>
+        </div>
+      </div>
+
+      @if (diagnosis) {
+        <div style="margin-bottom: 12px; font-size: 13px;"><strong>التشخيص:</strong> {{ diagnosis }}</div>
+      }
+
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px;">
+        <thead>
+          <tr style="background:#e5f4f6;">
+            <th style="padding:8px; text-align: right; border:1px solid #e3e9ea;">الدواء</th>
+            <th style="padding:8px; text-align: right; border:1px solid #e3e9ea;">الجرعة</th>
+            <th style="padding:8px; text-align: right; border:1px solid #e3e9ea;">المدة</th>
+            <th style="padding:8px; text-align: right; border:1px solid #e3e9ea;">الكمية</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of items(); track item.medicineId) {
+            <tr>
+              <td style="padding:8px; border:1px solid #e3e9ea;">{{ item.medicineName }}</td>
+              <td style="padding:8px; border:1px solid #e3e9ea;">{{ item.dosage }}</td>
+              <td style="padding:8px; border:1px solid #e3e9ea;">{{ item.durationDays }} يوم</td>
+              <td style="padding:8px; border:1px solid #e3e9ea;">{{ item.quantity }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      @if (generalNotes) {
+        <div style="font-size: 13px; margin-bottom: 24px;"><strong>ملاحظات:</strong> {{ generalNotes }}</div>
+      }
+
+      <div style="display:flex; justify-content: space-between; margin-top: 40px; font-size: 12px; color:#6b7a7d;">
+        <div>توقيع الطبيب: ......................</div>
+        <div>{{ clinicName }} — روشتة إلكترونية معتمدة</div>
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="text-center py-5 cp-text-muted">{{ 'common.loading' | translate }}</div>
+}

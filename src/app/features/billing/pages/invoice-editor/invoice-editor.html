@@ -1,0 +1,166 @@
+<h5 class="cp-fw-800 mb-3"><i class="bi bi-receipt me-2 ms-2"></i>{{ 'billing.newInvoice' | translate }}</h5>
+
+@if (!savedInvoice()) {
+  <div class="cp-card p-3 mb-3">
+    <label class="form-label small fw-semibold">{{ 'billing.chooseAppointment' | translate }}</label>
+    <select class="form-select" [(ngModel)]="selectedAppointmentId" (ngModelChange)="loadAppointment()">
+      <option value="" disabled selected>{{ 'billing.choosePlaceholder' | translate }}</option>
+      @for (o of options(); track o.id) {
+        <option [value]="o.id">{{ o.patientName }} — {{ o.doctorName }} — {{ o.date }}</option>
+      }
+    </select>
+  </div>
+
+  @if (selectedPatient(); as p) {
+    <div class="cp-card p-3 mb-3">
+      <h6 class="fw-bold mb-3">{{ 'billing.lineItems' | translate }}</h6>
+      <div class="table-responsive mb-3">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>{{ 'billing.colDescription' | translate }}</th>
+              <th>{{ 'billing.colQuantity' | translate }}</th>
+              <th>{{ 'billing.colUnitPrice' | translate }}</th>
+              <th>{{ 'common.price' | translate }}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of items(); track $index; let i = $index) {
+              <tr>
+                <td class="small">{{ item.description }}</td>
+                <td class="small">{{ item.quantity }}</td>
+                <td class="small">{{ item.unitPrice }}</td>
+                <td class="small fw-semibold">{{ item.total }}</td>
+                <td><button class="btn btn-sm btn-outline-danger" (click)="removeItem(i)"><i class="bi bi-trash"></i></button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="row g-2 align-items-end mb-3">
+        <div class="col-md-5">
+          <label class="form-label small">{{ 'billing.extraItem' | translate }}</label>
+          <input class="form-control" [placeholder]="'billing.descriptionPlaceholder' | translate" [(ngModel)]="manualDescription" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small">{{ 'common.price' | translate }}</label>
+          <input class="form-control" type="number" [(ngModel)]="manualPrice" />
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-outline-primary w-100" (click)="addManualItem()">
+            <i class="bi bi-plus-lg"></i> {{ 'common.add' | translate }}
+          </button>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label small">{{ 'billing.discountPercent' | translate }}</label>
+          <input class="form-control" type="number" [(ngModel)]="discountPercent" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small">{{ 'billing.taxPercent' | translate }}</label>
+          <input class="form-control" type="number" [(ngModel)]="taxPercent" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small">{{ 'billing.paymentMethod' | translate }}</label>
+          <select class="form-select" [(ngModel)]="paymentMethod">
+            <option value="cash">{{ 'billing.payCash' | translate }}</option>
+            <option value="card">{{ 'billing.payCard' | translate }}</option>
+            <option value="wallet">{{ 'billing.payWallet' | translate }}</option>
+            <option value="insurance">{{ 'billing.payInsurance' | translate }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="cp-surface-alt rounded-3 p-3 mt-3">
+        <div class="d-flex justify-content-between small">
+          <span>{{ 'billing.subtotal' | translate }}</span><span>{{ subtotal() | number: '1.2-2' }} {{ 'common.egp' | translate }}</span>
+        </div>
+        <div class="d-flex justify-content-between small text-danger">
+          <span>{{ 'billing.discount' | translate }}</span><span>-{{ discountAmount() | number: '1.2-2' }} {{ 'common.egp' | translate }}</span>
+        </div>
+        <div class="d-flex justify-content-between small">
+          <span>{{ 'billing.tax' | translate }}</span><span>+{{ taxAmount() | number: '1.2-2' }} {{ 'common.egp' | translate }}</span>
+        </div>
+        <hr class="my-2" />
+        <div class="d-flex justify-content-between fw-bold fs-5">
+          <span>{{ 'billing.total' | translate }}</span><span style="color: var(--cp-primary);">{{ total() | number: '1.2-2' }} {{ 'common.egp' | translate }}</span>
+        </div>
+      </div>
+
+      <button class="btn btn-primary w-100 mt-3" [disabled]="saving() || items().length === 0" (click)="saveInvoice()">
+        @if (saving()) {
+          <span class="spinner-border spinner-border-sm me-2 ms-2"></span>
+        }
+        <i class="bi bi-check2-circle me-1 ms-1"></i> {{ 'billing.issueInvoice' | translate }}
+      </button>
+    </div>
+  }
+} @else {
+  <div class="cp-card p-4 text-center">
+    <i class="bi bi-check-circle-fill fs-1 mb-2" style="color: var(--cp-success);"></i>
+    <h6 class="fw-bold">{{ 'billing.invoiceIssuedTitle' | translate: { number: savedInvoice()!.invoiceNumber } }}</h6>
+    <p class="cp-text-muted">{{ 'billing.total' | translate }}: {{ savedInvoice()!.total | number: '1.2-2' }} {{ 'common.egp' | translate }}</p>
+    <div class="d-flex gap-2 justify-content-center">
+      <button class="btn btn-primary" (click)="exportPdf()"><i class="bi bi-file-earmark-pdf me-1 ms-1"></i> {{ 'billing.exportPdf' | translate }}</button>
+      <button class="btn btn-outline-secondary" (click)="resetForNew()"><i class="bi bi-plus-lg me-1 ms-1"></i> {{ 'billing.newInvoiceBtn' | translate }}</button>
+    </div>
+  </div>
+}
+
+<!-- Printable invoice — kept in Arabic, the clinic's official document language -->
+<div style="position: fixed; top: 0; left: -10000px; width: 780px;">
+  <div #printable style="background: #fff; color: #16232a; padding: 32px; font-family: 'Cairo', sans-serif; direction: rtl;">
+    <div style="display:flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #0f7d8c; padding-bottom: 16px; margin-bottom: 20px;">
+      <div>
+        <div style="font-size: 20px; font-weight: 800; color:#0f7d8c;">{{ clinicName }}</div>
+        <div style="font-size: 12px; color:#6b7a7d;">{{ clinicAddress }} · {{ clinicPhone }}</div>
+      </div>
+      <img [src]="qrDataUrl()" style="width: 80px; height: 80px;" />
+    </div>
+
+    <div style="display:flex; justify-content: space-between; margin-bottom: 16px; font-size: 13px;">
+      <div>
+        <div><strong>رقم الفاتورة:</strong> {{ savedInvoice()?.invoiceNumber }}</div>
+        <div><strong>المريض:</strong> {{ selectedPatient()?.fullName }}</div>
+      </div>
+      <div>
+        <div><strong>التاريخ:</strong> {{ today() }}</div>
+        <div><strong>طريقة الدفع:</strong> {{ paymentMethod }}</div>
+      </div>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px;">
+      <thead>
+        <tr style="background:#e5f4f6;">
+          <th style="padding:8px; text-align: right; border:1px solid #e3e9ea;">الوصف</th>
+          <th style="padding:8px; text-align: right; border:1px solid #e3e9ea;">الكمية</th>
+          <th style="padding:8px; text-align: right; border:1px solid #e3e9ea;">السعر</th>
+          <th style="padding:8px; text-align: right; border:1px solid #e3e9ea;">الإجمالي</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of items(); track $index) {
+          <tr>
+            <td style="padding:8px; border:1px solid #e3e9ea;">{{ item.description }}</td>
+            <td style="padding:8px; border:1px solid #e3e9ea;">{{ item.quantity }}</td>
+            <td style="padding:8px; border:1px solid #e3e9ea;">{{ item.unitPrice }}</td>
+            <td style="padding:8px; border:1px solid #e3e9ea;">{{ item.total }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <div style="width: 260px; margin-inline-start: auto; font-size: 13px;">
+      <div style="display:flex; justify-content: space-between;"><span>الإجمالي الفرعي</span><span>{{ subtotal() }}</span></div>
+      <div style="display:flex; justify-content: space-between;"><span>الخصم</span><span>-{{ discountAmount() }}</span></div>
+      <div style="display:flex; justify-content: space-between;"><span>الضريبة</span><span>+{{ taxAmount() }}</span></div>
+      <div style="display:flex; justify-content: space-between; font-weight: 800; border-top: 1px solid #e3e9ea; padding-top: 4px; margin-top: 4px;">
+        <span>الإجمالي</span><span>{{ total() }} ج.م</span>
+      </div>
+    </div>
+  </div>
+</div>

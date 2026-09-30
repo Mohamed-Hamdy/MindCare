@@ -1,0 +1,10 @@
+@if (ready()) {
+  <router-outlet />
+} @else {
+  <div class="d-flex align-items-center justify-content-center" style="min-height: 100vh;">
+    <div class="text-center">
+      <div class="spinner-border" style="color: var(--cp-primary);" role="status"></div>
+      <div class="mt-2 cp-text-muted small">جارِ تجهيز MindCare...</div>
+    </div>
+  </div>
+}

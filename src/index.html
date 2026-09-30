@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <title>MindCare | إدارة المراكز والعيادات الطبية</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="MindCare - منصة متكاملة لإدارة المراكز والعيادات الطبية">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!--
+    Bootstrap ships two build-time-compiled stylesheets (regular = LTR physical
+    properties, .rtl = RTL physical properties) — there is no single CSS file
+    that adapts to both directions at runtime. Since the app can switch between
+    EN (ltr) and AR (rtl) live, we load whichever one matches the saved language
+    via this swappable <link>, kept in sync by LanguageService on every toggle.
+  -->
+  <link id="bootstrap-css" rel="stylesheet">
+  <script>
+    (function () {
+      try {
+        var lang = localStorage.getItem('cp_lang') || 'ar';
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === 'en' ? 'ltr' : 'rtl';
+        var bsLink = document.getElementById('bootstrap-css');
+        if (bsLink) {
+          bsLink.href = lang === 'en' ? 'assets/bootstrap/bootstrap.min.css' : 'assets/bootstrap/bootstrap.rtl.min.css';
+        }
+        var theme = localStorage.getItem('cp_theme_mode');
+        if (theme === 'dark' || (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.setAttribute('data-bs-theme', 'dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>
